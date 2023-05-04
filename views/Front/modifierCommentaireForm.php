@@ -1,34 +1,4 @@
 
-<?php
-include ("../../Model/publicationModel.php");
-include ("../../Controller/publicationC.php");
-
-
-session_start();
-$pubC = new publicationC();
-$publications = $pubC->afficher_publications();
-
-
-if (isset($_POST["supprimer"])) {
-        $pubC->supprimer_publication($_POST["idBlog"]);
-        //header('Location: ajouterBlog.php');
-}  
-
-// Check if the search form is submitted
-if (isset($_POST['search'])) {
-    $searchName = $_POST['searchName'];
-    $liste = $pubC->afficher_publications();
-    $liste = $pubC->searchpublicationByName($liste, $searchName);
-} else {
-    $liste = $pubC->afficher_publications();
-}
-?>
-
-
-
-
-
-   
 
 <!DOCTYPE html>
 <html lang="en">
@@ -112,8 +82,8 @@ if (isset($_POST['search'])) {
                     <div class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Blog</a>
                         <div class="dropdown-menu m-0">
-                            <a href="blog.html" class="dropdown-item active">Blog Grid</a>
-                            <a href="detail.html" class="dropdown-item">Blog Detail</a>
+                            <a href="blog.html" class="dropdown-item">Blog Grid</a>
+                            <a href="detail.html" class="dropdown-item active">Blog Detail</a>
                         </div>
                     </div>
                     <div class="nav-item dropdown">
@@ -136,10 +106,10 @@ if (isset($_POST['search'])) {
         <div class="container-fluid bg-primary py-5 bg-header" style="margin-bottom: 90px;">
             <div class="row py-5">
                 <div class="col-12 pt-lg-5 mt-lg-5 text-center">
-                    <h1 class="display-4 text-white animated zoomIn">Blog Grid</h1>
+                    <h1 class="display-4 text-white animated zoomIn">Blog Detail</h1>
                     <a href="" class="h5 text-white">Home</a>
                     <i class="far fa-circle text-white px-2"></i>
-                    <a href="" class="h5 text-white">Blog Grid</a>
+                    <a href="" class="h5 text-white">Blog Detail</a>
                 </div>
             </div>
         </div>
@@ -165,131 +135,97 @@ if (isset($_POST['search'])) {
     </div>
     <!-- Full Screen Search End -->
 
-   
+
     <!-- Blog Start -->
     <div class="container-fluid py-5 wow fadeInUp" data-wow-delay="0.1s">
         <div class="container py-5">
             <div class="row g-5">
-                <!-- Blog list Start -->
-                <div class="col-lg-">
-                <a class="text-uppercase" href="ajouterBlog.php">ajouter Blog <i class="bi bi-arrow-right"></i></a>
+                <div class="col-lg-8">                   
+    
+                    <!-- Comment Form Start -->
+                    <div class="bg-light rounded p-5">
+                        <div class="section-title section-title-sm position-relative pb-3 mb-4">
+                            <h3 class="mb-0">Modifier Commentaire</h3>
+                        </div>
+                       
+                        <form  method="post" action="modifierCom.php">
+                            <div class="row g-3">
+                            <input type="hidden" value=""  name="errors" id="error" class="form-control bg-red border-0" style="height: 55px;background-color: #ff3e3e;color: white;">
+                            <input type="hidden" value="0"  name="errorCode1" id="errorCode1" class="form-control bg-red border-0" style="height: 55px;">
+                            <input type="hidden" value="0"  name="errorCode2" id="errorCode2" class="form-control bg-red border-0" style="height: 55px;">
 
-                    <div class="row g-5">
-                        <!--
-                    <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Recherche id" title="Type in a name">
--->
-
-<?php
-  // Nombre de blogs par page
-  $blogsParPage = 4;
-
-  // Page courante
-  $page = isset($_GET['page']) ? $_GET['page'] : 1;
-
-  // Calcul de l'offset
-  $offset = ($page - 1) * $blogsParPage;
-
-  // Récupération des blogs à partir de l'offset
-  $listeBlogs = $pubC->afficherblog1($offset, $blogsParPage);
-
-  // Calcul du nombre total de blogs
-  $nombreTotalBlogs = $pubC->count();
-  
-
-  // Calcul du nombre total de pages
-  $nombreTotalPages = ceil($nombreTotalBlogs / $blogsParPage);
-?>
-        
-        <?php foreach($listeBlogs as $blog) { ?>
- 
-      <!--affichage-->        
-                        <div class="col-md-6 wow slideInUp" data-wow-delay="0.1s">
-                            <div class="blog-item bg-light rounded overflow-hidden">
+                            <div class="col-12">
+                                    <input type="text"  value="<?=$_GET['id'] ?>" onkeyup="controleNom();" name="nom" id="nom" class="form-control bg-white border-0" placeholder="Nom" style="height: 55px;">
+                                    
+                                </div>
+                                <div class="col-12">
+                                    <input type="text"  value="<?= $_GET['date']; ?>" onkeyup="controleTitre();" name="date" id="titre" class="form-control bg-white border-0" placeholder="Titre" style="height: 55px;">
+                                </div>
+                                <div class="col-12">
+                                    <textarea class="form-control bg-white border-0"   name="commentaire" id="contenu" rows="5" placeholder="Post"><?= $_GET['commentaire']; ?></textarea>
+                                </div>
                                 
-                                <div class="p-5">
-                                    <div class="d-flex mb-3">
-                                        <small class="me-3"><i class="far fa-user text-primary me-2"></i><?= $blog['nom']; ?></small>
-                                        <small><i class="far fa-calendar-alt text-primary me-2"></i>01 Jan, 2045</small>
-                                    </div>
-                                    <h4 class="mb-3"><?= $blog['titre']; ?></h4>
-                                    <p><?= $blog['contenu']; ?></p>
-                                    <a class="text-uppercase" href="detail.php?id=<?php echo $blog["id"];?>">Read More <i class="bi bi-arrow-right"></i></a>
-                                    <?php   if ( $pubC->ChercherUtilisateur($_SESSION['user']) == $blog["id_user"]) {$_SESSION['id_u']= $blog["id_user"];$_SESSION['id_p']= $blog['id'];   ?>  
-                                    <a class="text-uppercase" href="modifierBlog.php?id=<?php echo $blog["id"] ?>">Modifier <i class="bi bi-arrow-right"></i></a>
-                                    <?php } ?>
-                                    <form method="post" action="">
-                                    <?php   if ( $pubC->ChercherUtilisateur($_SESSION['user']) == $blog["id_user"]) {  ?>  
-                                        <button class="btn btn-primary w-100 py-3"  name="supprimer">Supprimer</button>
-                                        <input type="hidden" name="idBlog" value="<?php echo $blog["id"]; ?>"/>
-                                    <?php } ?>
-                                    </form>
+                                <div class="col-12">
+                                    <button class="btn btn-primary w-100 py-3" name="modifierpost">Modifier Commentaire</button>
                                 </div>
                             </div>
+                        </form>
                         
-      <style>
-        img {
-          width: 250px;
-          height: 150px;
-        }
-      </style>
-      <style>
-    .centered {
-        text-align: center;
-    }
-</style>
-      
-      <div>
-      <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode('http://yourdomain.com/blog.php?id=' . $blog['id']); ?>" target="_blank"><i class="fab fa-facebook"></i>facebook</a>
-<a href="https://twitter.com/intent/tweet?url=<?php echo urlencode('https://www.votre-site.com/blog/' . $blog['id']); ?>&text=<?php echo urlencode($blog['titre']); ?>" target="_blank"><i class="fab fa-twitter"></i>Twitter</a>
-<a href="https://www.instagram.com/aziz.jemlii" target="_blank"><i class="fab fa-instagram"></i>Instagram</a>
-
-      </div>
-      <form method="POST" action="ajoutercommentaire.php">
-       <input type="hidden" name ="message"  placeholder ="Ecrire un message" id="message<?php echo $blog['id']; ?>">
-        <input type="submit" id="envoyer" value="Envoyer" style="display: none;" data-blogid="<?php echo $blog['id']; ?>">
-        <input type="hidden" id="id_blog" name="id_blog" value="<?php echo $blog['id']; ?>" name="id">
-      </form>
-    </div>
-  </div>
-  <!-- Affichage des liens de pagination -->
-  <script>    
-    function afficherInput(id) {
-      var monInput = document.getElementById("message" + id);
-      monInput.type = "text";
-      var btnAfficherInput = document.querySelector("button[data-blogid='" + id + "']");
-      btnAfficherInput.style.display = "none";
-      var btnCommenter = document.querySelector("input[type='submit'][data-blogid='" + id + "']");
-      btnCommenter.style.display = "block";
-    }
-  </script>
-
-
-<?php } ?>
-  <center>
-<div class="pagination">
-  <?php for ($i = 1; $i <= $nombreTotalPages; $i++) { ?>
-   
-    <li  class="me-3"class="<?php if ($page == $i) { echo 'active'; } ?>"><a href="?page=<?php echo $i; ?>"><?php echo $i; ?></a></li>
- <?php } ?> 
-  </div>
-  </center>
-
-        </div>
-
-           
-                 
-
                     </div>
+                    <!-- Comment Form End -->
                 </div>
-                <!-- Blog list End -->
-                
             </div>
         </div>
     </div>
     <!-- Blog End -->
+    <script>
+        let compteur=0;
+        function controleNom()
+            {
+            var nom=document.getElementById('nom').value;
+           // myTextBox.addEventListener('keyup', function(){
+                    //do some stuff
+             //   });
+            //alert(nom);
+            if (nom.length<3 || !(nom.match("^[a-zA-Z]+$")))
+            {
+                document.getElementById('error').value= "Le nom du user doit etre une chaine alphabetique superieur à 3 caractères ";
+                document.getElementById('errorCode1').value= 1;
+                document.getElementById('error').type = 'text';
+            //erreurNom.innerHTML = "Le nom du user doit etre une chaine alphabetique superieur à 3 caractères";
+                //alert ('Le nom du user doit etre une chaine alphabetique superieur à 3 caractères ');
+            }else{
+                document.getElementById('errorCode1').value= 0;
 
-   
-   
+            }
+
+            }
+
+        function controleTitre()
+            {
+            var prenom=document.getElementById('titre').value;
+            //alert(nom);
+            if (prenom.length<3 || !(prenom.match("^[a-zA-Z]+$")))
+            {
+                document.getElementById('error').value= "Le titre doit etre une chaine alphabetique superieur à 3 caractères";
+                document.getElementById('errorCode2').value= 2;
+                document.getElementById('error').type = 'text';
+                
+
+               // alert('Le titre doit etre une chaine alphabetique superieur à 3 caractères');
+            }else{
+                document.getElementById('errorCode2').value= 0;
+
+            }
+
+            }
+
+
+        //function checkEmail(mail) {
+        //var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    </script>
+
+    
 
     <!-- Footer Start -->
     <div class="container-fluid bg-dark text-light mt-5 wow fadeInUp" data-wow-delay="0.1s">
@@ -371,9 +307,9 @@ if (isset($_POST['search'])) {
                 <div class="col-lg-8 col-md-6">
                     <div class="d-flex align-items-center justify-content-center" style="height: 75px;">
                         <p class="mb-0">&copy; <a class="text-white border-bottom" href="#">Your Site Name</a>. All Rights Reserved. 
-						
-						<!--/*** This template is free as long as you keep the footer author’s credit link/attribution link/backlink. If you'd like to use the template without the footer author’s credit link/attribution link/backlink, you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". Thank you for your support. ***/-->
-						Designed by <a class="text-white border-bottom" href="https://htmlcodex.com">HTML Codex</a></p>
+                        
+                        <!--/*** This template is free as long as you keep the footer author’s credit link/attribution link/backlink. If you'd like to use the template without the footer author’s credit link/attribution link/backlink, you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". Thank you for your support. ***/-->
+                        Designed by <a class="text-white border-bottom" href="https://htmlcodex.com">HTML Codex</a></p>
                     </div>
                 </div>
             </div>

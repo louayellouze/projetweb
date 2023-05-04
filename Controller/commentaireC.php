@@ -1,7 +1,58 @@
 <?php 
     require_once "../../config1.php";
-    class publicationC{
-        public function ChercherUtilisateur($email)
+    class commentaireC{
+       
+
+        
+        public function afficher_commentaires(){
+            $db = getConnexion();
+            try{
+                $query= $db->prepare('SELECT * FROM commentaire');
+                $query->execute();
+                return $query->fetchAll();
+            }catch(PDOException $e){
+                $e->getMessage();
+            }
+        }
+
+        public function afficher_commentaires_par_publication($id){
+            $db = getConnexion();
+            try{
+                $query= $db->prepare('SELECT * FROM commentaire where id_publication =:id');
+                $query->execute([
+                    'id' => $id
+                ]);
+                return $query->fetchAll();
+            }catch(PDOException $e){
+                $e->getMessage();
+            }
+        }
+
+        public function chercher_utilisateur_par_id($id)
+        {
+                $pdo = getConnexion();
+
+            try{
+
+                $query = $pdo->prepare(
+                    'SELECT * FROM utilisateur WHERE Id_utilisateur = :id' );
+                    $query->bindValue(':id',$id);
+                    
+                    $query->execute();
+                    $result = $query->fetchAll();
+                }
+                catch (PDOExeption $e){ 
+                $e->getMessage();
+                
+                  }
+                  foreach ($result as $res) {
+                    $fullname = $res["FirstName"] .  " " . $res["LastName"];
+                  }
+                  return $fullname;
+                        
+        }
+
+        public function chercher_utilisateur_par_email($email)
         {
                 $pdo = getConnexion();
 
@@ -25,33 +76,18 @@
                         
         }
 
-
-
-
-        
-        public function afficher_publications(){
-            $db = getConnexion();
-            try{
-                $query= $db->prepare('SELECT * FROM publication');
-                $query->execute();
-                return $query->fetchAll();
-            }catch(PDOException $e){
-                $e->getMessage();
-            }
-        }
-
-        public function ajouter_publication($publication){
+        public function ajouter_commentaire($commentaire){
                 try{
                     $db = getConnexion();
                     $query = $db->prepare(
-                        'INSERT INTO publication (titre, contenu, id_user, nom)
-                        VALUES (:titre, :contenu, :id_user, :nom)'
+                        'INSERT INTO commentaire ( contenu ,date , id_user, id_publication)
+                        VALUES ( :contenu,:date ,:id_user, :id_publication)'
                     );
                     $query->execute([
-                        'titre' => $publication->gettitre(),
-                        'contenu'=>$publication->getcontenu(),
-                        'id_user'=>$publication->getid_user(),
-                        'nom'=>$publication->getnom()
+                        'contenu' => $commentaire->getcontenu(),
+                        'date'=>$commentaire->getdate(),
+                        'id_user'=>$commentaire->getid_user(),
+                        'id_publication'=>$commentaire->getid_publication()
                     ]);
 
                 }catch(PDOException $e){
@@ -59,6 +95,7 @@
                 }
         }
 
+        
         public function modifier_publication($publication){
             try{
                 $db = getConnexion();
@@ -70,6 +107,7 @@
                     'titre' => $publication->gettitre(),
                     'contenu'=>$publication->getcontenu(),
                     'nom'=>$publication->getnom(),
+                    'id_user' => $publication->getid_user(),
                     'id'=>$publication->getid_user()
                 ]);
 
@@ -126,12 +164,12 @@
                 }
                 return $publications;
     }
-    public function supprimer_publication($id)
+    public function supprimer_commentaire($id)
         {              
                 $pdo = getConnexion();
 
             try{
-                $query = $pdo->prepare('DELETE FROM publication WHERE id = :id');
+                $query = $pdo->prepare('DELETE FROM commentaire WHERE id = :id');
                 $query->bindValue(':id',$id);
                 
                 $query->execute();
@@ -142,43 +180,42 @@
                 
             }
         }
-        
+
+    public function modifier_commentaire($id_publication,$id_user,$contenue,$date,$id_commentaire)
+    {
+        $pdo = getConnexion();
+
+        try{
+            $query = $pdo->prepare('UPDATE commentaire SET contenu=:contenue , date=:datee WHERE id_publication =:id_p AND id_user=:id_u AND id=:id_c');
+            /*$query->bindValue(':contenue',$contenue);
+            $query->bindValue(':id_publication',$id_publication);
+            $query->bindValue(':id_user',$id_user);
+            $query->bindValue(':datee',$date);
+            $query->bindValue(':id',$id_commentaire);
+
+            */
+            $val=intval($id_publication); 
             
-        
-        function count(){
-            $sql = "SELECT COUNT(*) AS count FROM publication ";
-            $db = getConnexion();
-            try{
-                $query=$db->prepare($sql);
-                $query->execute();
-                $nbre = $query->fetch(PDO::FETCH_ASSOC)['count'];
-                return $nbre;
-            }
-            catch(PDOException $e){
-                error_log("Erreur lors de la récupération du nombre de blogs: " . $e->getMessage(), 0);
-                die("Erreur lors de la récupération du nombre de blogs.");
-            }
+            $query->execute([
+            ':contenue'=>$contenue,
+            ':id_p'=>$val,
+            ':id_u'=> $id_user,
+            ':datee'=>$date,
+            ':id_c'=>$id_commentaire
+
+            ]);
+            
         }
+        catch (PDOExeption $e){ 
+            $e->getMessage();
+            
+        }
+
+    }
         
-           
+        
 
+  
 
-
-function afficherblog1($offset, $blogsParPage){
-    $sql="SELECT * FROM publication LIMIT :offset, :limit ";
-    $db = getConnexion();
-    try{
-        $query=$db->prepare($sql);
-        $query->bindParam(':offset', $offset, PDO::PARAM_INT);
-        $query->bindParam(':limit', $blogsParPage, PDO::PARAM_INT);
-        $query->execute();
-
-        $liste = $query->fetchAll(PDO::FETCH_ASSOC);
-        return $liste;
-    }
-    catch(PDOException $e){
-        die('Erreur:'. $e->getMessage());
-    }
-}
     }
 ?>

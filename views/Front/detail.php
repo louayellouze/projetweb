@@ -2,14 +2,36 @@
 <?php
 include ("../../Model/publicationModel.php");
 include ("../../Controller/publicationC.php");
+include ("../../Controller/commentaireC.php");
+include ("../../Model/commentaireModel.php");
+
 session_start();
+$_SESSION['user']; // email d'utilisateur connecter actuellement
 //$publications = new Publication();
 $id =  $_GET['id'];
+$comC = new CommentaireC();
+$commentaires = $comC->afficher_commentaires_par_publication($id);
 $pubC = new publicationC();
-$publication = $pubC->afficher_publication_par_id( $id);
+$publication = $pubC->afficher_publication_par_id($id);
 foreach($publication as $row) {
     echo $row['titre'];
- }?>
+}
+
+ if (isset($_POST["AjouterCommentaire"])) {
+    $currentDate = date('Y-m-d');
+    $id_user = $comC->chercher_utilisateur_par_email($_SESSION['user']);
+    $commentaire = new Commentaire($_POST["contenu"],$currentDate,$id_user,$_POST['idpub']);
+    $comC->ajouter_commentaire($commentaire);
+    header('Location: detail.php?id='.$_POST['idpub']);
+}
+
+if ( isset( $_POST["supprimer"] ) ){
+    $idPub = $_POST['idPub'];
+    $comC->supprimer_commentaire($_POST["idCommentaire"]);
+    header('Location: detail.php?id='.$idPub );
+}
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -167,47 +189,101 @@ foreach($publication as $row) {
                         <div class="section-title section-title-sm position-relative pb-3 mb-4">
                             <h3 class="mb-0">3 Comments</h3>
                         </div>
+                        <?php   foreach($commentaires as $commentaire) {    ?>
                         <div class="d-flex mb-4">
                             <div class="ps-3">
-                                <h6><a href="">John Doe</a> <small><i>01 Jan 2045</i></small></h6>
-                                <p>Diam amet duo labore stet elitr invidunt ea clita ipsum voluptua, tempor labore
-                                    accusam ipsum et no at. Kasd diam tempor rebum magna dolores sed eirmod</p>
+
+                                <h6><a href=""><?= $comC->chercher_utilisateur_par_id($commentaire['id_user']); ?></a> <small><i><?= $commentaire['date'];?></i></small></h6>
+                                <p><?= $commentaire['contenu'];?></p>
                             </div>
-                        </div>     
-                        <div class="d-flex mb-4">
                             <div class="ps-3">
-                                <h6><a href="">John Doe</a> <small><i>01 Jan 2045</i></small></h6>
-                                <p>Diam amet duo labore stet elitr invidunt ea clita ipsum voluptua, tempor labore
-                                    accusam ipsum et no at. Kasd diam tempor rebum magna dolores sed eirmod</p>
-                            </div>
-                        </div>        
+                            <form  method="post">
+                            <input type="hidden" name="idPub" value="<?= $id; ?>"/>
+
+                            <?php   if ( $comC->chercher_utilisateur_par_email($_SESSION['user']) == $commentaire["id_user"]) {  ?>  
+                                        <button type="submit" class="btn btn-danger w-30 py-1"  name="supprimer">Supprimer</button>
+                                        <input type="hidden" name="idCommentaire" value="<?= $commentaire["id"]; ?>"/>
+                                    <?php } ?>
+                                    </form>
+                                    </div>  
+                                    <div class="ps-3">
+                                    <?php   if ( $comC->chercher_utilisateur_par_email($_SESSION['user']) == $commentaire["id_user"]) { 
+                                        $_SESSION['id_c']=$commentaire['id'];
+                                        $_SESSION['id_p']=$_GET['id']; ?>  
+                                    <a class="text-uppercase"  href="modifierCommentaire.php?id=<?= $id . "&idc=" . $commentaire['id'] ?>" >Modifier <i class="bi bi-arrow-right"></i></a>
+                                    <?php } ?> 
+                                    </div>  
+
+                        </div>    
+                        <?php    }   ?>  
                     </div>
                     <!-- Comment List End -->
     
                     <!-- Comment Form Start -->
                     <div class="bg-light rounded p-5">
                         <div class="section-title section-title-sm position-relative pb-3 mb-4">
-                            <h3 class="mb-0">Leave A Comment</h3>
+                            <h3 class="mb-0">Ajouter Un Commentaire</h3>
                         </div>
-                        <form>
-                            <div class="row g-3">
-                                <div class="col-12 col-sm-6">
-                                    <input type="text" class="form-control bg-white border-0" placeholder="Your Name" style="height: 55px;">
-                                </div>
-                                <div class="col-12 col-sm-6">
-                                    <input type="email" class="form-control bg-white border-0" placeholder="Your Email" style="height: 55px;">
-                                </div>
-                                <div class="col-12">
-                                    <input type="text" class="form-control bg-white border-0" placeholder="Website" style="height: 55px;">
-                                </div>
-                                <div class="col-12">
-                                    <textarea class="form-control bg-white border-0" rows="5" placeholder="Comment"></textarea>
-                                </div>
-                                <div class="col-12">
-                                    <button class="btn btn-primary w-100 py-3" type="submit">Leave Your Comment</button>
-                                </div>
-                            </div>
-                        </form>
+                        <style>
+  .error {
+    border: 2px solid red;
+  }
+  .hidden {
+    display: none;
+  }
+  .error {
+  border: 2px solid red !important;
+}
+
+</style>
+<!------------------------------------------------------------------------- Metier bad words avec cs --------------------------------------------------------->
+<script>
+    function validateInput() {
+        var input = document.getElementsByName("contenu")[0].value;
+        var swearWords = ["fuck", "shit", "zah","sex"]; // Replace with actual swear words
+        var errorElement = document.getElementById("error-message");
+        if (input.length > 20) {
+            errorElement.innerHTML = "Votre commentaire doit être de 20 caractères ou moins.";
+            errorElement.style.display = "block";
+            return false;
+        } else {
+            errorElement.style.display = "none";
+        }
+        for (var i = 0; i < swearWords.length; i++) {
+            if (input.includes(swearWords[i])) {
+                errorElement.innerHTML = "Veuillez vous abstenir d'utiliser un langage offensant.";
+                errorElement.style.display = "block";
+                document.getElementsByName("contenu")[0].classList.add("error");
+                document.getElementsByName("AjouterCommentaire")[0].style.display = "none";
+                return false;
+            }
+        }
+        return true;
+    }
+</script>
+
+<form method="post" onsubmit="return validateInput()" >
+    <div class="row g-3">
+        <input type="hidden" value="<?= $id; ?>" name="idpub" class="form-control bg-white border-0" placeholder="Nom" style="height: 55px;">
+        <div class="col-12">
+            <textarea name="contenu" class="form-control bg-white border-0" rows="5" placeholder="Comment"></textarea>
+            <span id="error-message" style="display: none; color: red;"></span>
+        </div>
+        <div class="col-12">
+            <button name="AjouterCommentaire" class="btn btn-primary w-100 py-3" type="submit">Poster Commentaire</button>
+        </div>
+    </div>
+</form>
+
+<style>
+    .error {
+        border: 2px solid red;
+    }
+</style>
+
+
+
+
                     </div>
                     <!-- Comment Form End -->
                 </div>

@@ -6,8 +6,8 @@ session_start();
 $pubC = new publicationC();
 echo $_SESSION['user'];
 if (isset($_POST["ajouterpost"])) {
-    if ( strlen($_POST["titre"]) < 5  ){
-        echo "<script>alert('donner un titre plus que 5 characteres'); </script>";
+    if ( strlen($_POST["titre"]) <4  ){
+        echo "<script>alert('donner un titre plus que 4 characteres'); </script>";
         
     }
     else{
@@ -190,8 +190,7 @@ if (isset($_POST["ajouterpost"])) {
     </div>
     <!-- Blog End -->
 
-    
-
+   
     <!-- Footer Start -->
     <div class="container-fluid bg-dark text-light mt-5 wow fadeInUp" data-wow-delay="0.1s">
         <div class="container">

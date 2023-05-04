@@ -1,4 +1,3 @@
-
 <?php
 include ("../../Model/publicationModel.php");
 include ("../../Controller/publicationC.php");
@@ -7,9 +6,15 @@ $pubC = new publicationC();
 $publications = $pubC->afficher_publication_par_id($_GET["id"]);
 $id_post = $_GET["id"];
 if (isset($_POST["modifierpost"])) {
-    $publication = new Publication($_POST["titre"],$_POST["contenu"],$id_post,$_POST["nom"]);
-    $pubC->modifier_publication($publication);
-    header('Location: blog.php');
+    if ( $_POST['errorCode2'] == 0 && $_POST['errorCode1'] == 0){
+        $publication = new Publication($_POST["titre"],$_POST["contenu"],$id_post,$_POST["nom"]);
+        $pubC->modifier_publication($publication);
+        header('Location: blog.php');
+    }else{
+        echo '<script>alert("veillez respecter le controle de saisie");</script>';
+    }
+   
+    
     
 }
 ?>
@@ -163,14 +168,18 @@ if (isset($_POST["modifierpost"])) {
                         <?php   foreach($publications as $row) {     ?>  
                         <form  method="post">
                             <div class="row g-3">
+                            <input type="hidden" value=""  name="errors" id="error" class="form-control bg-red border-0" style="height: 55px;background-color: #ff3e3e;color: white;">
+                            <input type="hidden" value="0"  name="errorCode1" id="errorCode1" class="form-control bg-red border-0" style="height: 55px;">
+                            <input type="hidden" value="0"  name="errorCode2" id="errorCode2" class="form-control bg-red border-0" style="height: 55px;">
+
                             <div class="col-12">
-                                    <input type="text" value="<?= $row['nom']; ?>" name="nom" class="form-control bg-white border-0" placeholder="Nom" style="height: 55px;">
+                                    <input type="text"  value="<?= $row['nom']; ?>" onkeyup="controleNom();" name="nom" id="nom" class="form-control bg-white border-0" placeholder="Nom" style="height: 55px;">
                                 </div>
                                 <div class="col-12">
-                                    <input type="text"  value="<?= $row['titre']; ?>" name="titre" class="form-control bg-white border-0" placeholder="Titre" style="height: 55px;">
+                                    <input type="text"  value="<?= $row['titre']; ?>" onkeyup="controleTitre();" name="titre" id="titre" class="form-control bg-white border-0" placeholder="Titre" style="height: 55px;">
                                 </div>
                                 <div class="col-12">
-                                    <textarea class="form-control bg-white border-0"   name="contenu" rows="5" placeholder="Post"><?= $row['contenu']; ?></textarea>
+                                    <textarea class="form-control bg-white border-0"   name="contenu" id="contenu" rows="5" placeholder="Post"><?= $row['contenu']; ?></textarea>
                                 </div>
                                 <div class="col-12">
                                     <button class="btn btn-primary w-100 py-3" name="modifierpost">Modifier Post</button>
@@ -185,6 +194,52 @@ if (isset($_POST["modifierpost"])) {
         </div>
     </div>
     <!-- Blog End -->
+    <script>
+        let compteur=0;
+        function controleNom()
+            {
+            var nom=document.getElementById('nom').value;
+           // myTextBox.addEventListener('keyup', function(){
+                    //do some stuff
+             //   });
+            //alert(nom);
+            if (nom.length<3 || !(nom.match("^[a-zA-Z]+$")))
+            {
+                document.getElementById('error').value= "Le nom du user doit etre une chaine alphabetique superieur à 3 caractères ";
+                document.getElementById('errorCode1').value= 1;
+                document.getElementById('error').type = 'text';
+            //erreurNom.innerHTML = "Le nom du user doit etre une chaine alphabetique superieur à 3 caractères";
+                //alert ('Le nom du user doit etre une chaine alphabetique superieur à 3 caractères ');
+            }else{
+                document.getElementById('errorCode1').value= 0;
+
+            }
+
+            }
+
+        function controleTitre()
+            {
+            var prenom=document.getElementById('titre').value;
+            //alert(nom);
+            if (prenom.length<3 || !(prenom.match("^[a-zA-Z]+$")))
+            {
+                document.getElementById('error').value= "Le titre doit etre une chaine alphabetique superieur à 3 caractères";
+                document.getElementById('errorCode2').value= 2;
+                document.getElementById('error').type = 'text';
+                
+
+               // alert('Le titre doit etre une chaine alphabetique superieur à 3 caractères');
+            }else{
+                document.getElementById('errorCode2').value= 0;
+
+            }
+
+            }
+
+
+        //function checkEmail(mail) {
+        //var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    </script>
 
     
 
@@ -268,9 +323,9 @@ if (isset($_POST["modifierpost"])) {
                 <div class="col-lg-8 col-md-6">
                     <div class="d-flex align-items-center justify-content-center" style="height: 75px;">
                         <p class="mb-0">&copy; <a class="text-white border-bottom" href="#">Your Site Name</a>. All Rights Reserved. 
-						
-						<!--/*** This template is free as long as you keep the footer author’s credit link/attribution link/backlink. If you'd like to use the template without the footer author’s credit link/attribution link/backlink, you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". Thank you for your support. ***/-->
-						Designed by <a class="text-white border-bottom" href="https://htmlcodex.com">HTML Codex</a></p>
+                        
+                        <!--/*** This template is free as long as you keep the footer author’s credit link/attribution link/backlink. If you'd like to use the template without the footer author’s credit link/attribution link/backlink, you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". Thank you for your support. ***/-->
+                        Designed by <a class="text-white border-bottom" href="https://htmlcodex.com">HTML Codex</a></p>
                     </div>
                 </div>
             </div>
